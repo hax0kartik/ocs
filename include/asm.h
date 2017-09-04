@@ -6,3 +6,4 @@ Result svcGlobalBackdoor(s32 (*callback)(void));
 bool checkSvcGlobalBackdoor();
 Result svcMiniBackDoor(void *target);
 void invalidate_icache();
+Result checkRunningCFW();

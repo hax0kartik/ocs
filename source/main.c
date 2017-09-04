@@ -53,10 +53,10 @@ void doExploitsStep1()
 	while(ret > 0)
 	{
 		ret = udsploit();
-		printf("Udsploit:%s|%08X",((ret == 0)?"Success":"Failure"), (unsigned int)ret); 
+		//printf("Udsploit:%s|%08X",((ret == 0)?"Success":"Failure"), (unsigned int)ret); 
 		if(ret == 0) 
 			ret = hook_kernel();
-		printf("hook_kernel:%s|%08lX",((ret == 0)?"Success":"Failure"), ret);
+		//printf("hook_kernel:%s|%08lX",((ret == 0)?"Success":"Failure"), ret);
 	}
 	safehax();
 }
@@ -64,10 +64,13 @@ int main()
 {
 	//preliminary stuff
 	gfxInitDefault();
-	consoleInit(GFX_TOP, &top);
-	consoleSelect(&top);
+	//consoleInit(GFX_TOP, &top);
+	consoleInit(GFX_BOTTOM, NULL);
+	//consoleSelect(&bottom);
+//	printf("----Try---");
+	//consoleSelect(&top);	
 	httpcInit(0);
-	//printf("Downloading files for Step 1...\n");
+//	printf("Downloading files for Step 1...\n");
 	//downloadExtractStep1();
 	printf("Running exploits\n");
 	doExploitsStep1();

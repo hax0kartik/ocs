@@ -9,7 +9,7 @@
 #include "archive.h"
 #include "httpc.h"
 #include "fs.h"
-#define result(str,res) printf("Result for %s:%s\n",str,(ret == 0)?"Success":"Fail");
+#define result(str,res) printf("Result for %s:%s\n",str,(ret == 0)?"\x1b[1;32mSuccess\x1b[1;37m":"\x1b[1;31mFail\x1b[1;37m");
 PrintConsole top, bottom;
 /*
 Code Plan:-
@@ -80,20 +80,34 @@ void downloadExtractStep2()
 {
 	printf("Downloading hb_launcher\n");
 	Result ret = httpDownloadData("https://github.com/yellows8/hblauncher_loader/releases/download/v1.3/hblauncher_loader_v1.3.zip");//hb_launcher by yellows8/hblauncher_loader
-	printf("Download Result: %08lX\n", ret);
+	result("Download", ret);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/cias/");
 	httpFree();
 	printf("Downloading and Installing FBI\n");
 	ret = httpDownloadData("https://github.com/Steveice10/FBI/releases/download/2.4.11/FBI.cia");//FBI by steveice10
-	printf("Download Result: %08lX\n", ret);
+	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading  and Installing lumaupdater\n");
 	ret = httpDownloadData("https://github.com/KunoichiZ/lumaupdate/releases/download/v2.1.2/lumaupdater.cia"); //lumaupdater by hamcha & KunoichiZ
-	printf("Download Result: %08lX\n", ret);
+	result("Download",ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing DSP1\n");
+	ret = httpDownloadData("https://github.com/zoogie/DSP1/releases/download/v1.0/DSP1.cia");//DSP1 by zoogie
+	result("Download",ret);
+	ciaInstall(httpRetrieveData(), httpBufSize());
+	httpFree();
+	printf("Downloading and Installing Anemone3DS\n");
+	ret = httpDownloadData("https://github.com/astronautlevel2/Anemone3DS/releases/download/v1.1.0/Anemone3DS.cia");//Anemone3ds by AstronaultLevel2
+	result("Download", ret);
+	ciaInstall(httpRetrieveData(), httpBufSize());
+	httpFree();
+	printf("Downloading boot.3dsx\n");
+	ret = httpDownloadData("https://github.com/fincs/new-hbmenu/releases/download/v2.0.0/boot.3dsx");// By smealum & others
+	result("Download", ret);
+	fsOpenAndWrite("/boot.3dsx",httpRetrieveData(), httpBufSize()); 
+	httpFree();
 }
 
 int main()
@@ -103,8 +117,10 @@ int main()
 	consoleInit(GFX_TOP, &top);
 	consoleInit(GFX_BOTTOM, &bottom);
 	consoleSelect(&bottom);
+	printf("\x1b[1;37m");
 	printf("Welcome to OCS!!\nMade by:- Kartik\nSpecial Thanks to :-\nChromaryu:- For Testing\nSmealum and yellows8:- For udsploit\nTinivi for safehax");
 	consoleSelect(&top);
+	printf("\x1b[1;37m");
 	bool cfwflag = false;
 	printf("Press A to begin\n");
 	while(aptMainLoop())
@@ -134,13 +150,13 @@ int main()
 		printf("Running cfw\n");
 		printf("Downloading files for Step 2...\n");
 		downloadExtractStep2();
-		printf("Press A to exit\n");
+		printf("Proccess Finished. Press Start to exit and enjoy\n");
 	}
 		while(aptMainLoop())
 		{
 			hidScanInput();
 			
-			if(hidKeysDown() & KEY_A)
+			if(hidKeysDown() & KEY_START)
 				break;
 			
 		}

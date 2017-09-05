@@ -1,5 +1,6 @@
 #include <3ds.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "httpc.h"
 u8 *buf;
 u8 *lastbuf = NULL;
@@ -24,7 +25,7 @@ Result httpDownloadData(const char* url)
 	ret = httpcGetResponseStatusCode(&context, &statuscode);
 	if(ret>0)return ret;
 	
-	printf("StatusCode :%d", statuscode);
+	printf("StatusCode :%d\n", (int)statuscode);
 	if((statuscode >=301 && statuscode <=303) || (statuscode >= 307 && statuscode <= 308))
 	{
 		char newurl[1024];
@@ -39,7 +40,7 @@ Result httpDownloadData(const char* url)
         size += readsize; 
         if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING){
                 lastbuf = buf; 
-				printf("Size : %X\n",size);
+				printf("Size : %lX\n",size);
                 buf = (u8*)realloc(buf, size + 0x1000);
                 if(buf==NULL){ 
                     httpcCloseContext(&context);

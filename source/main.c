@@ -24,7 +24,7 @@ These steps are additional -----------------------------------------------------
 4.)Install titles hblauncher_loader and then FBI
 4a.)Download starter.zip
 4b.)Replace the boot.3dsx in the sd root with  boot.3dsx from the pack
-5.)Plan finish 
+5.)Plan finish
 */
 void downloadExtractStep1()
 {
@@ -54,7 +54,7 @@ void doExploitsStep1()
 	{
 		ret = udsploit();
 		result("Udsploit", ret);
-		if(ret == 0) 
+		if(ret == 0)
 			ret = hook_kernel();
 		result("hook_kernel", ret);
 	}
@@ -78,11 +78,6 @@ void ciaInstall(void *data, u32 size)
 
 void downloadExtractStep2()
 {
-	printf("Downloading hb_launcher\n");
-	Result ret = httpDownloadData("https://github.com/yellows8/hblauncher_loader/releases/download/v1.3/hblauncher_loader_v1.3.zip");//hb_launcher by yellows8/hblauncher_loader
-	result("Download", ret);
-	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/cias/");
-	httpFree();
 	printf("Downloading and Installing FBI\n");
 	ret = httpDownloadData("https://github.com/Steveice10/FBI/releases/download/2.4.11/FBI.cia");//FBI by steveice10
 	result("Download", ret);
@@ -106,10 +101,10 @@ void downloadExtractStep2()
 	printf("Downloading boot.3dsx\n");
 	ret = httpDownloadData("https://github.com/fincs/new-hbmenu/releases/download/v2.0.0/boot.3dsx");// By smealum & others
 	result("Download", ret);
-	fsOpenAndWrite("/boot.3dsx",httpRetrieveData(), httpBufSize()); 
+	fsOpenAndWrite("/boot.3dsx",httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading godmode9\n");
-	ret = httpDownloadData("https://github.com/d0k3/GodMode9/releases/download/v1.3.1/GodMode9-20170808-155408.zip");// By d0k3 
+	ret = httpDownloadData("https://github.com/d0k3/GodMode9/releases/download/v1.3.1/GodMode9-20170808-155408.zip");// By d0k3
 	result("Download", ret);
 	mkdir("/luma/payloads", 0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads");
@@ -131,15 +126,15 @@ int main()
 	while(aptMainLoop())
 		{
 			hidScanInput();
-			
+
 			if(hidKeysDown() & KEY_A)
 				break;
-			
+
 		}
 	printf("Checking if cfw is installed\n");
 	Result ret = checkRunningCFW();
-	(ret == 0xF8C007F4) ? (cfwflag = false) : (cfwflag = true); 
-	consoleSelect(&top);	
+	(ret == 0xF8C007F4) ? (cfwflag = false) : (cfwflag = true);
+	consoleSelect(&top);
 	httpcInit(0);
 	if(cfwflag == false)
 	{
@@ -151,7 +146,7 @@ int main()
 	}
 	else
 	{
-		//User is running luma cfw 
+		//User is running luma cfw
 		printf("Running cfw\n");
 		printf("Downloading files for Step 2...\n");
 		downloadExtractStep2();
@@ -160,11 +155,11 @@ int main()
 		while(aptMainLoop())
 		{
 			hidScanInput();
-			
+
 			if(hidKeysDown() & KEY_START)
 				break;
-			
+
 		}
-	httpcExit();	
-	gfxExit();	
+	httpcExit();
+	gfxExit();
 }

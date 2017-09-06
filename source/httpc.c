@@ -16,12 +16,12 @@ void progressbar(const char *string, double update, double total)
 	printf("\x1b[14;0H%s%3.2f%% Complete   \x1b[15;0H[", string,((update/total)*100.0));
 	for(int a = 0; a < totalfill; a++)
 		printf("=");
-	
+
 	printf(">");
-	printf("%*s%s", nfill - totalfill, "", "]"); 
+	printf("%*s%s", nfill - totalfill, "", "]");
 	consoleSelect(&top);
 }
- 
+
 Result httpDownloadData(const char* url)
 {
 	httpcContext context;
@@ -32,16 +32,16 @@ Result httpDownloadData(const char* url)
 	size = 0, readsize = 0;
 	ret = httpcOpenContext(&context, HTTPC_METHOD_GET, url, 0);
 	if(ret>0)return ret;
-	
+
 	ret = httpcSetSSLOpt(&context, 1<<9);
 	if(ret>0)return ret;
-	
+
 	ret = httpcBeginRequest(&context);
 	if(ret>0)return ret;
-	
+
 	ret = httpcGetResponseStatusCode(&context, &statuscode);
 	if(ret>0)return ret;
-	
+
 	printf("StatusCode :%d\n", (int)statuscode);
 	if((statuscode >=301 && statuscode <=303) || (statuscode >= 307 && statuscode <= 308))
 	{
@@ -53,22 +53,22 @@ Result httpDownloadData(const char* url)
 	}
 	ret = httpcGetDownloadSizeState(&context, NULL, &contentsize);
 	if(ret>0)return ret;
-	
+
 	do {
         ret = httpcDownloadData(&context, buf+size, 0x1000, &readsize);
-        size += readsize; 
+        size += readsize;
 		progressbar("Download:", size, contentsize);
         if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING){
-                lastbuf = buf; 
+                lastbuf = buf;
                 buf = (u8*)realloc(buf, size + 0x1000);
-                if(buf==NULL){ 
+                if(buf==NULL){
                     httpcCloseContext(&context);
                     free(lastbuf);
                     return -1;
                 }
             }
-    } while (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING); 
-	
+    } while (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING);
+
 	if(ret!=0){
         httpcCloseContext(&context);
         free(buf);
@@ -77,7 +77,7 @@ Result httpDownloadData(const char* url)
 
     lastbuf = buf;
     buf = (u8*)realloc(buf, size);
-    if(buf==NULL){ 
+    if(buf==NULL){
         httpcCloseContext(&context);
         free(lastbuf);
         return -1;

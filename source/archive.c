@@ -46,7 +46,6 @@ void archiveExtractFile(void *buf, size_t size, char *fileToExtract, char *Extra
 	archive_write_disk_set_options(ext, flags);
 	if((r = archive_read_open_memory(a, buf, size)))
 		printf("Couldn't open memory");
-	printf("Error : %s\n", archive_error_string(a));
 	for(;;)
 	{
 		r = archive_read_next_header(a, &entry);

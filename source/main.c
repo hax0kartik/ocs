@@ -34,7 +34,7 @@ void downloadExtractStep1()
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "SafeB9SInstaller.bin", "safehaxpayload.bin","/");
 	httpFree();
 	printf("Downloading boot9strap\n");
-	ret = httpDownloadData("https://github.com/SciresM/boot9strap/releases/download/1.2/boot9strap-1.2.zip");//b9s by scrisem
+	ret = httpDownloadData("https://github.com/SciresM/boot9strap/releases/download/1.3/boot9strap-1.3.zip");//b9s by scrisem
 	result("b9s Download", ret);
 	mkdir("/boot9strap",0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "boot9strap.firm", "boot9strap.firm", "/boot9strap/");
@@ -65,14 +65,14 @@ void ciaInstall(void *data, u32 size)
 {
 	Handle cia;
 	Result ret = amInit();
-	printf("Am_init: %08lX\n", ret);
+	result("amInit", ret);
 	AM_QueryAvailableExternalTitleDatabase(NULL);
 	ret = AM_StartCiaInstall(MEDIATYPE_SD, &cia);
-	printf("Cia init start %08lX\n", ret);
+	result("CiaStartInstall", ret);
 	ret = FSFILE_Write(cia, NULL, 0, data, size, 0);
-	printf("Cia install :%08lx\n", ret);
+	result("Cia install", ret);
 	ret = AM_FinishCiaInstall(cia);
-	printf("Cia Finish %08lX\n", ret);
+	result("Cia Finish", ret);
 	amExit();
 }
 
@@ -90,12 +90,12 @@ void downloadExtractStep2()
 	httpFree();
 	printf("Downloading  and Installing lumaupdater\n");
 	ret = httpDownloadData("https://github.com/KunoichiZ/lumaupdate/releases/download/v2.1.2/lumaupdater.cia"); //lumaupdater by hamcha & KunoichiZ
-	result("Download",ret);
+	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing DSP1\n");
 	ret = httpDownloadData("https://github.com/zoogie/DSP1/releases/download/v1.0/DSP1.cia");//DSP1 by zoogie
-	result("Download",ret);
+	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing Anemone3DS\n");
@@ -108,6 +108,11 @@ void downloadExtractStep2()
 	result("Download", ret);
 	fsOpenAndWrite("/boot.3dsx",httpRetrieveData(), httpBufSize()); 
 	httpFree();
+	printf("Downloading godmode9\n");
+	ret = httpDownloadData("https://github.com/d0k3/GodMode9/releases/download/v1.3.1/GodMode9-20170808-155408.zip");// By d0k3 
+	result("Download", ret);
+	mkdir("/luma/payloads", 0777);
+	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads");
 }
 
 int main()

@@ -5,10 +5,27 @@
 u8 *buf;
 u8 *lastbuf = NULL;
 u32 size=0, readsize=0;
+
+extern PrintConsole bottom, top;
+
+void progressbar(const char *string, double update, double total)
+{
+	int nfill = 35;
+	int totalfill = (int)((update/total)*(double)nfill);
+	consoleSelect(&bottom);
+	printf("\x1b[14;0H%s%3.2f%% Complete   \x1b[15;0H[", string,((update/total)*100.0));
+	for(int a = 0; a < totalfill; a++)
+		printf("=");
+	
+	printf(">");
+	printf("%*s%s", nfill - totalfill, "", "]"); 
+	consoleSelect(&top);
+}
+ 
 Result httpDownloadData(const char* url)
 {
 	httpcContext context;
-	u32 statuscode;
+	u32 statuscode, contentsize;
 	Result ret;
 	buf = (u8*)malloc(0x1000);
 	if(buf == NULL) return -1;
@@ -34,13 +51,15 @@ Result httpDownloadData(const char* url)
 		printf("newurl : %s\n", newurl);
 		return httpDownloadData(newurl);
 	}
+	ret = httpcGetDownloadSizeState(&context, NULL, &contentsize);
+	if(ret>0)return ret;
 	
 	do {
         ret = httpcDownloadData(&context, buf+size, 0x1000, &readsize);
         size += readsize; 
+		progressbar("Download:", size, contentsize);
         if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING){
                 lastbuf = buf; 
-				printf("Size : %lX\n",size);
                 buf = (u8*)realloc(buf, size + 0x1000);
                 if(buf==NULL){ 
                     httpcCloseContext(&context);

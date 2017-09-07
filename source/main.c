@@ -84,7 +84,7 @@ void downloadExtractStep2()
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading  and Installing lumaupdater\n");
-	ret = httpDownloadData("https://github.com/KunoichiZ/lumaupdate/releases/download/v2.1.2/lumaupdater.cia"); //lumaupdater by hamcha & KunoichiZ
+	ret = httpDownloadData("https://github.com/KunoichiZ/lumaupdate/releases/download/v2.2/lumaupdater.cia"); //lumaupdater by hamcha & KunoichiZ
 	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();

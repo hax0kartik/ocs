@@ -79,7 +79,7 @@ void ciaInstall(void *data, u32 size)
 void downloadExtractStep2()
 {
 	printf("Downloading and Installing FBI\n");
-	ret = httpDownloadData("https://github.com/Steveice10/FBI/releases/download/2.4.11/FBI.cia");//FBI by steveice10
+	Result ret = httpDownloadData("https://github.com/Steveice10/FBI/releases/download/2.4.11/FBI.cia");//FBI by steveice10
 	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();

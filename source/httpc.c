@@ -33,12 +33,15 @@ Result httpDownloadData(const char* url)
 	ret = httpcOpenContext(&context, HTTPC_METHOD_GET, url, 0);
 	if(ret>0)return ret;
 
+	ret = httpcAddRequestHeaderField(&context, (char*)"User-Agent", (char*)"OCS");
+	if(ret>0)return ret;
+	
 	ret = httpcSetSSLOpt(&context, 1<<9);
 	if(ret>0)return ret;
 
 	ret = httpcBeginRequest(&context);
 	if(ret>0)return ret;
-
+	
 	ret = httpcGetResponseStatusCode(&context, &statuscode);
 	if(ret>0)return ret;
 

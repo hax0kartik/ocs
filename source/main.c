@@ -9,8 +9,10 @@
 #include "archive.h"
 #include "httpc.h"
 #include "fs.h"
+#include "jsmn.h"
 #define result(str,res) printf("Result for %s:%s\n",str,(ret == 0)?"\x1b[1;32mSuccess\x1b[1;37m":"\x1b[1;31mFail\x1b[1;37m");
 PrintConsole top, bottom;
+
 /*
 Code Plan:-
 
@@ -26,22 +28,61 @@ These steps are additional -----------------------------------------------------
 4b.)Replace the boot.3dsx in the sd root with  boot.3dsx from the pack
 5.)Plan finish
 */
+//Code from jsmn example
+int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
+	if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
+		strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+		return 0;
+	}
+	return -1;
+}
+
+char *parseApi(const char *url, const char *format)
+{
+	printf("Parsing JSON to get latest release\n");
+	Result ret = httpDownloadData(url);
+	jsmn_parser p = {};
+	jsmn_init(&p);
+	static char downloadUrl[0x100], returnDownloadUrl[0x100];
+	jsmntok_t t[512] = {};
+	u8* apiReqData = httpRetrieveData();
+	int r = jsmn_parse(&p, (const char *)apiReqData, httpBufSize(), t, sizeof(t) / sizeof(t[0]));
+	if (r < 0) {
+		printf("Failed to parse JSON %d", r);
+	}
+	bool inassets = false;
+	for (int i = 0; i < r; i++) {
+		if (!inassets && jsoneq((const char*)apiReqData, &t[i], "assets") == 0) {
+			inassets = true;
+		}
+		if (inassets) {
+			if (jsoneq((const char*)apiReqData, &t[i], "browser_download_url") == 0) {
+				sprintf(downloadUrl, "%.*s", t[i+1].end-t[i+1].start, apiReqData + t[i+1].start);
+				if(strstr(downloadUrl, format) != NULL)
+					strcpy(returnDownloadUrl, downloadUrl);
+				}
+			}
+		}
+		httpFree();
+		return returnDownloadUrl;
+	}
+
 void downloadExtractStep1()
 {
 	printf("Downloading safeb9sinstaller\n");
-	Result ret = httpDownloadData("https://github.com/d0k3/SafeB9SInstaller/releases/download/v0.0.7/SafeB9SInstaller-20170605-122940.zip");//safeb9sinstaller by d0k3
+	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/d0k3/SafeB9SInstaller/releases/latest", ".zip"));//safeb9sinstaller by d0k3
 	result("Safeb9sinstaller Download", ret);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "SafeB9SInstaller.bin", "safehaxpayload.bin","/");
 	httpFree();
 	printf("Downloading boot9strap\n");
-	ret = httpDownloadData("https://github.com/SciresM/boot9strap/releases/download/1.3/boot9strap-1.3.zip");//b9s by scrisem
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/SciresM/boot9strap/releases/latest",".zip"));//b9s by scrisem
 	result("b9s Download", ret);
 	mkdir("/boot9strap",0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "boot9strap.firm", "boot9strap.firm", "/boot9strap/");
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "boot9strap.firm.sha", "boot9strap.firm.sha", "/boot9strap/");
 	httpFree();
 	printf("Downloading luma\n");
-	ret = httpDownloadData("https://github.com/AuroraWright/Luma3DS/releases/download/v8.1.1/Luma3DSv8.1.1.7z");//luma by aurorawright
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/AuroraWright/Luma3DS/releases/latest", ".7z"));//luma by aurorawright
 	result("Luma Download", ret);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "boot.firm", "boot.firm", "/");
 	httpFree();
@@ -79,32 +120,32 @@ void ciaInstall(void *data, u32 size)
 void downloadExtractStep2()
 {
 	printf("Downloading and Installing FBI\n");
-	Result ret = httpDownloadData("https://github.com/Steveice10/FBI/releases/download/2.4.11/FBI.cia");//FBI by steveice10
+	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/Steveice10/FBI/releases/latest", ".cia"));//FBI by steveice10
 	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading  and Installing lumaupdater\n");
-	ret = httpDownloadData("https://github.com/KunoichiZ/lumaupdate/releases/download/v2.2/lumaupdater.cia"); //lumaupdater by hamcha & KunoichiZ
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/KunoichiZ/lumaupdate/releases/latest", ".cia")); //lumaupdater by hamcha & KunoichiZ
 	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing DSP1\n");
-	ret = httpDownloadData("https://github.com/zoogie/DSP1/releases/download/v1.0/DSP1.cia");//DSP1 by zoogie
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/zoogie/DSP1/releases/latest", ".cia"));//DSP1 by zoogie
 	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing Anemone3DS\n");
-	ret = httpDownloadData("https://github.com/astronautlevel2/Anemone3DS/releases/download/v1.1.0/Anemone3DS.cia");//Anemone3ds by AstronaultLevel2
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/astronautlevel2/Anemone3DS/releases/latest", ".cia"));//Anemone3ds by AstronaultLevel2
 	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading boot.3dsx\n");
-	ret = httpDownloadData("https://github.com/fincs/new-hbmenu/releases/download/v2.0.0/boot.3dsx");// By smealum & others
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/fincs/new-hbmenu/releases/latest", ".3dsx"));// By smealum & others
 	result("Download", ret);
 	fsOpenAndWrite("/boot.3dsx",httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading godmode9\n");
-	ret = httpDownloadData("https://github.com/d0k3/GodMode9/releases/download/v1.3.1/GodMode9-20170808-155408.zip");// By d0k3
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/d0k3/GodMode9/releases/latest", ".zip"));// By d0k3
 	result("Download", ret);
 	mkdir("/luma/payloads", 0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads");
@@ -121,6 +162,8 @@ int main()
 	printf("Welcome to OCS!!\nMade by:- Kartik\nSpecial Thanks to :-\nChromaryu:- For Testing\nSmealum and yellows8:- For udsploit\nTinivi for safehax");
 	consoleSelect(&top);
 	printf("\x1b[1;37m");
+	printf("Looking for updates");
+	
 	bool cfwflag = false;
 	printf("Press A to begin\n");
 	while(aptMainLoop())
@@ -149,6 +192,7 @@ int main()
 		//User is running luma cfw
 		printf("Running cfw\n");
 		printf("Downloading files for Step 2...\n");
+		//parseApi("https://api.github.com/repos/pirater12/ocs/releases/latest");
 		downloadExtractStep2();
 		printf("Proccess Finished. Press Start to exit and enjoy\n");
 	}

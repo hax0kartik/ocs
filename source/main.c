@@ -162,7 +162,7 @@ int main()
 	printf("Welcome to OCS!!\nMade by:- Kartik\nSpecial Thanks to :-\nChromaryu:- For Testing\nSmealum and yellows8:- For udsploit\nTinivi for safehax");
 	consoleSelect(&top);
 	printf("\x1b[1;37m");
-	printf("Looking for updates");
+	printf("Looking for updates\n");
 	
 	bool cfwflag = false;
 	printf("Press A to begin\n");

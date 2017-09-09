@@ -7,11 +7,12 @@
 #include "asm.h"
 #include "exploits.h"
 #include "archive.h"
+#include "log.h"
 #include "httpc.h"
 #include "fs.h"
 #include "jsmn.h"
-#define result(str,ret) printf("Result for %s:",str); \
-(ret == 0) ? printf("\x1b[1;32mSuccess\x1b[1;37m\n"):printf("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret)
+#define result(str,ret) print("Result for %s:",str); \
+(ret == 0) ? print("\x1b[1;32mSuccess\x1b[1;37m\n"):print("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret)
 PrintConsole top, bottom;
 
 /*
@@ -89,20 +90,6 @@ void downloadExtractStep1()
 	httpFree();
 }
 
-void doExploitsStep1()
-{
-	Result ret = 1;
-	while(ret > 0)
-	{
-		ret = udsploit();
-		result("Udsploit", ret);
-		if(ret == 0)
-			ret = hook_kernel();
-		result("hook_kernel", ret);
-	}
-	safehax();
-}
-
 void ciaInstall(void *data, u32 size)
 {
 	Handle cia;
@@ -118,19 +105,24 @@ void ciaInstall(void *data, u32 size)
 	amExit();
 }
 
+void doExploitsStep1()
+{
+	Result ret = 1;
+	while(ret > 0)
+	{
+		ret = udsploit();
+		result("Udsploit", ret);
+		if(ret == 0)
+			ret = hook_kernel();
+		result("hook_kernel", ret);
+	}
+	safehax();
+}
+
 void downloadExtractStep2()
 {
-	printf("Downloading hblauncher_loader\n");
-	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/yellows8/hblauncher_loader/releases/latest", ".zip"));//FBI by steveice10
-	result("Download", ret);
-	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/");
-	u32 size;
-	u8 *data = fsOpenAndRead("/hblauncher_loader.cia", &size);
-	ciaInstall(data, size);
-	free(data);
-	httpFree();
 	printf("Downloading  and Installing lumaupdater\n");
-	ret = httpDownloadData(parseApi("https://api.github.com/repos/KunoichiZ/lumaupdate/releases/latest", ".cia")); //lumaupdater by hamcha & KunoichiZ
+	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/KunoichiZ/lumaupdate/releases/latest", ".cia")); //lumaupdater by hamcha & KunoichiZ
 	result("Download", ret);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
@@ -153,7 +145,18 @@ void downloadExtractStep2()
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/d0k3/GodMode9/releases/latest", ".zip"));// By d0k3
 	result("Download", ret);
 	mkdir("/luma/payloads", 0777);
-	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads");
+	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads/");
+	//Best time to install hblauncher_loader
+	printf("Downloading hblauncher_loader\n");
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/yellows8/hblauncher_loader/releases/latest", ".zip"));//hblauncher_loader by yellows8
+	result("Download", ret);
+	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/");
+	httpFree();
+	u32 size;
+	u8 *data = fsOpenAndRead("/hblauncher_loader.cia", &size);
+	printf("Trying to install hblauncher_loader.cia\n");
+	ciaInstall(data, size);
+	free(data);
 }
 
 int main()

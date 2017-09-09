@@ -1,4 +1,6 @@
 #include <3ds.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "fs.h"
 void fsOpenAndWrite(const char *location, void *data, size_t size)
 {
@@ -10,24 +12,21 @@ void fsOpenAndWrite(const char *location, void *data, size_t size)
 	FSFILE_Close(file);
 }
 
-void fsOpenAndRead(const char *location, void *data, u32 *readsize, u32 size)
+u8 *fsOpenAndRead(const char *location, u32 *readSize)
 {
-	Handle file;
-	FS_Path archivePath = fsMakePath(PATH_EMPTY, "");
-	FS_Path filePath = fsMakePath(PATH_ASCII, location);
-	FSUSER_OpenFileDirectly(&file, ARCHIVE_SDMC, archivePath, filePath, FS_OPEN_READ, 0x0);
-	FSFILE_Read(file, readsize, 0x0, data, size);
-	FSFILE_Close(file);
-}
-
-u64 fsGetFileSize(const char *location)
-{
-	Handle file;
-	FS_Path archivePath = fsMakePath(PATH_EMPTY, "");
-	FS_Path filePath = fsMakePath(PATH_ASCII, location);
-	FSUSER_OpenFileDirectly(&file, ARCHIVE_SDMC, archivePath, filePath, FS_OPEN_READ, 0x0);
-	u64 size;
-	FSFILE_GetSize (file, &size);
-	FSFILE_Close(file);
-	return size;
+	FILE *file = fopen(location, "rb");
+	// seek to end of file
+	fseek(file,0,SEEK_END);
+	// file pointer tells us the size
+	off_t size = ftell(file);
+	// seek back to start
+	fseek(file,0,SEEK_SET);
+	//allocate a buffer
+	u8 *data=malloc(size);
+	//read contents !
+	off_t bytesRead = fread(data, 1, size, file);
+	//close the file because we like being nice and tidy
+	*readSize = size;
+	fclose(file);
+	return data;
 }

@@ -10,7 +10,8 @@
 #include "httpc.h"
 #include "fs.h"
 #include "jsmn.h"
-#define result(str,res) printf("Result for %s:%s\n",str,(ret == 0)?"\x1b[1;32mSuccess\x1b[1;37m":"\x1b[1;31mFail\x1b[1;37m");
+#define result(str,ret) printf("Result for %s:",str); \
+(ret == 0) ? printf("\x1b[1;32mSuccess\x1b[1;37m\n"):printf("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret)
 PrintConsole top, bottom;
 
 /*
@@ -119,10 +120,14 @@ void ciaInstall(void *data, u32 size)
 
 void downloadExtractStep2()
 {
-	printf("Downloading and Installing FBI\n");
-	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/Steveice10/FBI/releases/latest", ".cia"));//FBI by steveice10
+	printf("Downloading hblauncher_loader\n");
+	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/yellows8/hblauncher_loader/releases/latest", ".zip"));//FBI by steveice10
 	result("Download", ret);
-	ciaInstall(httpRetrieveData(), httpBufSize());
+	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/");
+	u32 size;
+	u8 *data = fsOpenAndRead("/hblauncher_loader.cia", &size);
+	ciaInstall(data, size);
+	free(data);
 	httpFree();
 	printf("Downloading  and Installing lumaupdater\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/KunoichiZ/lumaupdate/releases/latest", ".cia")); //lumaupdater by hamcha & KunoichiZ

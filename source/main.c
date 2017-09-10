@@ -157,6 +157,10 @@ void downloadExtractStep2()
 	printf("Trying to install hblauncher_loader.cia\n");
 	ciaInstall(data, size);
 	free(data);
+	printf("Putting up luma on CTR-NAND");
+	data = fsOpenAndRead("/boot.firm", &size);
+	fsOpenAndWriteNAND("/boot.firm", data, size);
+	free(data);
 }
 
 int main()
@@ -170,8 +174,6 @@ int main()
 	printf("Welcome to \x1b[1mOCS!!\x1b[0m\nMade by:- \x1b[1;32mKartik\x1b[1;37m\nSpecial Thanks to :-\n\x1b[1;33mChromaryu\x1b[1;37m:- For Testing\n\x1b[1;35Smealum\x1b[1;37m and \x1b[1;33myellows8\x1b[1;37m:- For udsploit\n\x1b[1;36mTinivi\x1b[1;37m for safehax");
 	consoleSelect(&top);
 	printf("\x1b[1;37m");
-	printf("Looking for updates\n");
-	
 	bool cfwflag = false;
 	printf("Press A to begin\n");
 	while(aptMainLoop())

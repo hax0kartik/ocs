@@ -30,3 +30,13 @@ u8 *fsOpenAndRead(const char *location, u32 *readSize)
 	fclose(file);
 	return data;
 }
+
+void fsOpenAndWriteNAND(const char *location, void *data, size_t size)
+{
+	Handle file;
+	FS_Path archivePath = fsMakePath(PATH_EMPTY, "");
+	FS_Path filePath = fsMakePath(PATH_ASCII, location);
+	FSUSER_OpenFileDirectly(&file, ARCHIVE_NAND_CTR_FS, archivePath, filePath, FS_OPEN_WRITE|FS_OPEN_CREATE, 0x0);
+	FSFILE_Write(file, NULL, 0x0, data, size, FS_WRITE_FLUSH);
+	FSFILE_Close(file);
+}

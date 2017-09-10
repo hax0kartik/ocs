@@ -95,7 +95,7 @@ void ciaInstall(void *data, u32 size)
 	Handle cia;
 	Result ret = amInit();
 	result("amInit", ret);
-	AM_QueryAvailableExternalTitleDatabase(NULL);
+	AM_InitializeExternalTitleDatabase(false);
 	ret = AM_StartCiaInstall(MEDIATYPE_SD, &cia);
 	result("CiaStartInstall", ret);
 	ret = FSFILE_Write(cia, NULL, 0, data, size, 0);

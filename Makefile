@@ -32,6 +32,9 @@ BUILD		:=	build
 SOURCES		:=	source source/exploits/source
 DATA		:=	data
 INCLUDES	:=	include
+APP_AUTHOR	:= 	Kartik
+APP_TITLE	:= 	OCS
+APP_DESCRIPTION	:= 	One Click Setup For 3ds!
 #ROMFS		:=	romfs
 
 #---------------------------------------------------------------------------------

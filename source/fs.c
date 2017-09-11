@@ -15,6 +15,7 @@ void fsOpenAndWrite(const char *location, void *data, size_t size)
 u8 *fsOpenAndRead(const char *location, u32 *readSize)
 {
 	FILE *file = fopen(location, "rb");
+	if(!file) return NULL;
 	// seek to end of file
 	fseek(file,0,SEEK_END);
 	// file pointer tells us the size
@@ -31,6 +32,15 @@ u8 *fsOpenAndRead(const char *location, u32 *readSize)
 	return data;
 }
 
+Result checkFileExists(const char *location)
+{
+	FILE *file;
+	if (file = fopen(location, "r")){
+	fclose(file);
+		return 1;
+	}
+	return 0;
+}
 Result fsOpenAndWriteNAND(const char *location, void *data, size_t size)
 {
 	Handle file;

@@ -133,36 +133,46 @@ void doExploitsStep1()
 
 void downloadExtractStep2()
 {
-	progressbar("Total Progress:", 0, 7, true);
+	progressbar("Total Progress:", 0, 8, true);
 	printf("Downloading  and Installing lumaupdater\n");
 	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/KunoichiZ/lumaupdate/releases/latest", ".cia")); //lumaupdater by hamcha & KunoichiZ
-	result("Download", ret, 7, 1);
+	result("Download", ret, 8, 1);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing DSP1\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/zoogie/DSP1/releases/latest", ".cia"));//DSP1 by zoogie
-	result("Download", ret, 7, 2);
+	result("Download", ret, 8, 2);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing Anemone3DS\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/astronautlevel2/Anemone3DS/releases/latest", ".cia"));//Anemone3ds by AstronaultLevel2
-	result("Download", ret, 7, 3);
+	result("Download", ret, 8, 3);
+	ciaInstall(httpRetrieveData(), httpBufSize());
+	httpFree();
+	printf("Downloading and Installing FBI\n");
+	ret = httpDownloadData(parseApi("https://api.github.com/repos/steveice10/FBI/releases/latest", ".cia"));//FBI by steveice10
+	result("Download", ret, 8, 4);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading boot.3dsx\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/fincs/new-hbmenu/releases/latest", ".3dsx"));// By smealum & others
-	result("Download", ret, 7, 4);
+	result("Download", ret, 8, 5);
 	fsOpenAndWrite("/boot.3dsx",httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading godmode9\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/d0k3/GodMode9/releases/latest", ".zip"));// By d0k3
-	result("Download", ret, 7, 5);
+	result("Download", ret, 8, 6);
 	mkdir("/luma/payloads", 0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads/");
+	printf("Downloading godmode9 sd card cleaup script\n");
+	ret = httpDownloadData("https://3ds.guide/gm9_scripts/cleanup_sd_card.gm9"); //By d0k3
+	result("Download", ret, 8, 6.5);
+	mkdir("/gm9/scripts", 0777);
+	fsOpenAndWrite("/gm9/scripts/cleanup_sd_card.gm9", httpRetrieveData(), httpBufSize());
 	//Best time to install hblauncher_loader
 	printf("Downloading hblauncher_loader\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/yellows8/hblauncher_loader/releases/latest", ".zip"));//hblauncher_loader by yellows8
-	result("Download", ret, 7, 6);
+	result("Download", ret, 8, 7);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/");
 	httpFree();
 	u32 size;
@@ -173,37 +183,10 @@ void downloadExtractStep2()
 	printf("Putting up luma on CTR-NAND\n");
 	data = fsOpenAndRead("/boot.firm", &size);
 	ret = fsOpenAndWriteNAND("/boot.firm", data, size);
-	result("Luma_On_CtrNand", ret, 7, 7);
+	result("Luma_On_CTRNAND", ret, 8, 8);
 	free(data);
 }
 
-void launchSystemUpdater()
-{
-	u8 region = 0;
-	Result ret = cfguInit();
-	u64 title[7] = {0x0004001000020F00, 0x0004001000021F00, 0x0004001000022000, 0x0004001000020F00, 0x0004001000026F00, 0x0004001000027F00, 0x0004001000028F00};
-	if(ret!=0)
-	{
-		printf("Failed to init cfgu: 0x%08x.\n", (unsigned int)ret);
-	}
-	ret = CFGU_SecureInfoGetRegion(&region);
-	if(ret!=0)
-	{
-		printf("Failed to get region from cfgu: 0x%08x.\n", (unsigned int)ret);
-	}
-	
-	cfguExit();
-	printf("Launching");
-	initsrv_allservices();
-	patch_svcaccesstable();
-	ret = pmInit();
-	printf("ret %08X\n",ret);
-	ret = PM_LaunchFIRMSetParams(3, 0, NULL);
-	printf("ret %08X",ret);
-	pmExit();
-	gfxExit();
-	
-}
 int main()
 {
 	//preliminary stuff
@@ -233,8 +216,11 @@ int main()
 	if(cfwflag == false)
 	{
 		printf("Not running cfw\n");
-		printf("Downloading files for CFW installation\n");
-		downloadExtractStep1();
+		if(checkFileExists("/safehaxpayload.bin") == 0) //check if files already exsist for step 1.
+		{	
+			printf("Downloading files for CFW installation\n");
+			downloadExtractStep1();
+		}	
 		printf("Running exploits\n");
 		doExploitsStep1();
 	}

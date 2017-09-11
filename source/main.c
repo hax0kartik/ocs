@@ -133,46 +133,46 @@ void doExploitsStep1()
 
 void downloadExtractStep2()
 {
-	progressbar("Total Progress:", 0, 8, true);
+	progressbar("Total Progress:", 0, 9, true);
 	printf("Downloading  and Installing lumaupdater\n");
 	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/KunoichiZ/lumaupdate/releases/latest", ".cia")); //lumaupdater by hamcha & KunoichiZ
-	result("Download", ret, 8, 1);
+	result("Download", ret, 9, 1);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing DSP1\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/zoogie/DSP1/releases/latest", ".cia"));//DSP1 by zoogie
-	result("Download", ret, 8, 2);
+	result("Download", ret, 9, 2);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing Anemone3DS\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/astronautlevel2/Anemone3DS/releases/latest", ".cia"));//Anemone3ds by AstronaultLevel2
-	result("Download", ret, 8, 3);
+	result("Download", ret, 9, 3);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing FBI\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/steveice10/FBI/releases/latest", ".cia"));//FBI by steveice10
-	result("Download", ret, 8, 4);
+	result("Download", ret, 9, 4);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading boot.3dsx\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/fincs/new-hbmenu/releases/latest", ".3dsx"));// By smealum & others
-	result("Download", ret, 8, 5);
+	result("Download", ret, 9, 5);
 	fsOpenAndWrite("/boot.3dsx",httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading godmode9\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/d0k3/GodMode9/releases/latest", ".zip"));// By d0k3
-	result("Download", ret, 8, 6);
+	result("Download", ret, 9, 6);
 	mkdir("/luma/payloads", 0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads/");
 	printf("Downloading godmode9 sd card cleaup script\n");
-	ret = httpDownloadData("https://3ds.guide/gm9_scripts/cleanup_sd_card.gm9"); //By d0k3
-	result("Download", ret, 8, 6.5);
+	Result ret = httpDownloadData("http://3ds.guide/gm9_scripts/cleanup_sd_card.gm9"); //By d0k3
+	result("Download", ret, 9, 7);
 	mkdir("/gm9/scripts", 0777);
 	fsOpenAndWrite("/gm9/scripts/cleanup_sd_card.gm9", httpRetrieveData(), httpBufSize());
 	//Best time to install hblauncher_loader
 	printf("Downloading hblauncher_loader\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/yellows8/hblauncher_loader/releases/latest", ".zip"));//hblauncher_loader by yellows8
-	result("Download", ret, 8, 7);
+	result("Download", ret, 9, 8);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/");
 	httpFree();
 	u32 size;
@@ -180,10 +180,9 @@ void downloadExtractStep2()
 	printf("Trying to install hblauncher_loader.cia\n");
 	ciaInstall(data, size);
 	free(data);
-	printf("Putting up luma on CTR-NAND\n");
 	data = fsOpenAndRead("/boot.firm", &size);
-	ret = fsOpenAndWriteNAND("/boot.firm", data, size);
-	result("Luma_On_CTRNAND", ret, 8, 8);
+	Result ret = fsOpenAndWriteNAND("/boot.firm", data, size);
+	result("Luma_On_CTRNAND", ret, 9, 9);
 	free(data);
 }
 
@@ -199,6 +198,7 @@ int main()
 	consoleSelect(&top);
 	printf("\x1b[1;37m");
 	bool cfwflag = false;
+	acWaitInternetConnection();
 	printf("Press A to begin\n");
 	while(aptMainLoop())
 		{
@@ -231,7 +231,6 @@ int main()
 		printf("Downloading files for Step 2...\n");
 		//parseApi("https://api.github.com/repos/pirater12/ocs/releases/latest");
 		downloadExtractStep2();
-		//launchSystemUpdater();
 		printf("Proccess Finished. Press Start to exit and enjoy\n");
 	}
 		while(aptMainLoop())

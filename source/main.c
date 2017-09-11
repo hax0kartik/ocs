@@ -11,9 +11,20 @@
 #include "httpc.h"
 #include "fs.h"
 #include "jsmn.h"
-#define result(str,ret) print("Result for %s:",str); \
-(ret == 0) ? print("\x1b[1;32mSuccess\x1b[1;37m\n"):print("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret)
+
+extern void progressbar(const char *string, double update, double total, bool progBarTotal);
 PrintConsole top, bottom;
+
+#define result(str,ret,steps,step_count) print("Result for %s:",str); \
+if(ret == 0) \
+{	\
+	progressbar("Total Progress:", step_count, steps, true);	\
+	print("\x1b[1;32mSuccess\x1b[1;37m\n");	\
+}	\
+else	\
+{	\
+	print("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret);	\
+}	
 
 /*
 Code Plan:-
@@ -71,21 +82,22 @@ char *parseApi(const char *url, const char *format)
 
 void downloadExtractStep1()
 {
+	progressbar("Total Progress:", 0, 5, true);
 	printf("Downloading safeb9sinstaller\n");
 	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/d0k3/SafeB9SInstaller/releases/latest", ".zip"));//safeb9sinstaller by d0k3
-	result("Safeb9sinstaller Download", ret);
+	result("Safeb9sinstaller Download", ret, 5, 1);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "SafeB9SInstaller.bin", "safehaxpayload.bin","/");
 	httpFree();
 	printf("Downloading boot9strap\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/SciresM/boot9strap/releases/latest",".zip"));//b9s by scrisem
-	result("b9s Download", ret);
+	result("b9s Download", ret, 5, 2);
 	mkdir("/boot9strap",0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "boot9strap.firm", "boot9strap.firm", "/boot9strap/");
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "boot9strap.firm.sha", "boot9strap.firm.sha", "/boot9strap/");
 	httpFree();
 	printf("Downloading luma\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/AuroraWright/Luma3DS/releases/latest", ".7z"));//luma by aurorawright
-	result("Luma Download", ret);
+	result("Luma Download", ret, 5, 3);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "boot.firm", "boot.firm", "/");
 	httpFree();
 }
@@ -94,14 +106,14 @@ void ciaInstall(void *data, u32 size)
 {
 	Handle cia;
 	Result ret = amInit();
-	result("amInit", ret);
+	print("Result for %s:","amInit"); (ret == 0) ? print("\x1b[1;32mSuccess\x1b[1;37m\n"):print("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret);
 	AM_InitializeExternalTitleDatabase(false);
 	ret = AM_StartCiaInstall(MEDIATYPE_SD, &cia);
-	result("CiaStartInstall", ret);
+	print("Result for %s:","Start_CiaInstall"); (ret == 0) ? print("\x1b[1;32mSuccess\x1b[1;37m\n"):print("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret);
 	ret = FSFILE_Write(cia, NULL, 0, data, size, 0);
-	result("Cia install", ret);
+	print("Result for %s:","CIA write"); (ret == 0) ? print("\x1b[1;32mSuccess\x1b[1;37m\n"):print("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret);
 	ret = AM_FinishCiaInstall(cia);
-	result("Cia Finish", ret);
+	print("Result for %s:","Finish Cia Install"); (ret == 0) ? print("\x1b[1;32mSuccess\x1b[1;37m\n"):print("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret);
 	amExit();
 }
 
@@ -111,45 +123,46 @@ void doExploitsStep1()
 	while(ret > 0)
 	{
 		ret = udsploit();
-		result("Udsploit", ret);
+		result("Udsploit", ret, 5, 4);
 		if(ret == 0)
 			ret = hook_kernel();
-		result("hook_kernel", ret);
+		result("hook_kernel", ret, 5, 5);
 	}
 	safehax();
 }
 
 void downloadExtractStep2()
 {
+	progressbar("Total Progress:", 0, 7, true);
 	printf("Downloading  and Installing lumaupdater\n");
 	Result ret = httpDownloadData(parseApi("https://api.github.com/repos/KunoichiZ/lumaupdate/releases/latest", ".cia")); //lumaupdater by hamcha & KunoichiZ
-	result("Download", ret);
+	result("Download", ret, 7, 1);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing DSP1\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/zoogie/DSP1/releases/latest", ".cia"));//DSP1 by zoogie
-	result("Download", ret);
+	result("Download", ret, 7, 2);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading and Installing Anemone3DS\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/astronautlevel2/Anemone3DS/releases/latest", ".cia"));//Anemone3ds by AstronaultLevel2
-	result("Download", ret);
+	result("Download", ret, 7, 3);
 	ciaInstall(httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading boot.3dsx\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/fincs/new-hbmenu/releases/latest", ".3dsx"));// By smealum & others
-	result("Download", ret);
+	result("Download", ret, 7, 4);
 	fsOpenAndWrite("/boot.3dsx",httpRetrieveData(), httpBufSize());
 	httpFree();
 	printf("Downloading godmode9\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/d0k3/GodMode9/releases/latest", ".zip"));// By d0k3
-	result("Download", ret);
+	result("Download", ret, 7, 5);
 	mkdir("/luma/payloads", 0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads/");
 	//Best time to install hblauncher_loader
 	printf("Downloading hblauncher_loader\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/yellows8/hblauncher_loader/releases/latest", ".zip"));//hblauncher_loader by yellows8
-	result("Download", ret);
+	result("Download", ret, 7, 6);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/");
 	httpFree();
 	u32 size;
@@ -157,12 +170,40 @@ void downloadExtractStep2()
 	printf("Trying to install hblauncher_loader.cia\n");
 	ciaInstall(data, size);
 	free(data);
-	printf("Putting up luma on CTR-NAND");
+	printf("Putting up luma on CTR-NAND\n");
 	data = fsOpenAndRead("/boot.firm", &size);
-	fsOpenAndWriteNAND("/boot.firm", data, size);
+	ret = fsOpenAndWriteNAND("/boot.firm", data, size);
+	result("Luma_On_CtrNand", ret, 7, 7);
 	free(data);
 }
 
+void launchSystemUpdater()
+{
+	u8 region = 0;
+	Result ret = cfguInit();
+	u64 title[7] = {0x0004001000020F00, 0x0004001000021F00, 0x0004001000022000, 0x0004001000020F00, 0x0004001000026F00, 0x0004001000027F00, 0x0004001000028F00};
+	if(ret!=0)
+	{
+		printf("Failed to init cfgu: 0x%08x.\n", (unsigned int)ret);
+	}
+	ret = CFGU_SecureInfoGetRegion(&region);
+	if(ret!=0)
+	{
+		printf("Failed to get region from cfgu: 0x%08x.\n", (unsigned int)ret);
+	}
+	
+	cfguExit();
+	printf("Launching");
+	initsrv_allservices();
+	patch_svcaccesstable();
+	ret = pmInit();
+	printf("ret %08X\n",ret);
+	ret = PM_LaunchFIRMSetParams(3, 0, NULL);
+	printf("ret %08X",ret);
+	pmExit();
+	gfxExit();
+	
+}
 int main()
 {
 	//preliminary stuff
@@ -204,6 +245,7 @@ int main()
 		printf("Downloading files for Step 2...\n");
 		//parseApi("https://api.github.com/repos/pirater12/ocs/releases/latest");
 		downloadExtractStep2();
+		//launchSystemUpdater();
 		printf("Proccess Finished. Press Start to exit and enjoy\n");
 	}
 		while(aptMainLoop())

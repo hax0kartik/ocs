@@ -8,12 +8,15 @@ u32 size=0, readsize=0;
 
 extern PrintConsole bottom, top;
 
-void progressbar(const char *string, double update, double total)
+void progressbar(const char *string, double update, double total, bool progBarTotal)
 {
 	int nfill = 35;
 	int totalfill = (int)((update/total)*(double)nfill);
 	consoleSelect(&bottom);
-	printf("\x1b[14;0H%s%3.2f%% Complete   \x1b[15;0H[", string,((update/total)*100.0));
+	if(progBarTotal == false)
+		printf("\x1b[14;0H%s%3.2f%% Complete   \x1b[15;0H[", string,((update/total)*100.0));
+	else
+		printf("\x1b[17;0H%s%3.2f%% Complete   \x1b[18;0H[", string,((update/total)*100.0));
 	for(int a = 0; a < totalfill; a++)
 		printf("=");
 
@@ -45,13 +48,11 @@ Result httpDownloadData(const char* url)
 	ret = httpcGetResponseStatusCode(&context, &statuscode);
 	if(ret>0)return ret;
 
-	printf("StatusCode :%d\n", (int)statuscode);
 	if((statuscode >=301 && statuscode <=303) || (statuscode >= 307 && statuscode <= 308))
 	{
 		char newurl[1024];
 		httpcGetResponseHeader(&context, (char*)"Location", newurl, 1024);
 		httpcCloseContext(&context);
-		printf("newurl : %s\n", newurl);
 		return httpDownloadData(newurl);
 	}
 	ret = httpcGetDownloadSizeState(&context, NULL, &contentsize);
@@ -60,7 +61,7 @@ Result httpDownloadData(const char* url)
 	do {
         ret = httpcDownloadData(&context, buf+size, 0x1000, &readsize);
         size += readsize;
-		progressbar("Download:", size, contentsize);
+		progressbar("Download:", size, contentsize, false);
         if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING){
                 lastbuf = buf;
                 buf = (u8*)realloc(buf, size + 0x1000);

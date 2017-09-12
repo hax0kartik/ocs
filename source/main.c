@@ -73,6 +73,7 @@ char *parseApi(const char *url, const char *format)
 				sprintf(downloadUrl, "%.*s", t[i+1].end-t[i+1].start, apiReqData + t[i+1].start);
 				if(strstr(downloadUrl, format) != NULL)
 					strcpy(returnDownloadUrl, downloadUrl);
+					printf("Downloading the latest release\n");
 				}
 			}
 		}
@@ -165,24 +166,25 @@ void downloadExtractStep2()
 	mkdir("/luma/payloads", 0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads/");
 	printf("Downloading godmode9 sd card cleaup script\n");
-	Result ret = httpDownloadData("http://3ds.guide/gm9_scripts/cleanup_sd_card.gm9"); //By d0k3
+	ret = httpDownloadData("http://3ds.guide/gm9_scripts/cleanup_sd_card.gm9"); //By d0k3
 	result("Download", ret, 9, 7);
+	mkdir("/gm9",0777);
 	mkdir("/gm9/scripts", 0777);
 	fsOpenAndWrite("/gm9/scripts/cleanup_sd_card.gm9", httpRetrieveData(), httpBufSize());
+	printf("Downloading godmode9 ctr-nand luma script\n");
+	ret = httpDownloadData("http://3ds.guide/gm9_scripts/setup_ctrnand_luma3ds.gm9"); //By d0k3
+	result("Download", ret, 9, 8);
+	fsOpenAndWrite("/gm9/scripts/setup_ctrnand_luma3ds.gm9", httpRetrieveData(), httpBufSize());
 	//Best time to install hblauncher_loader
 	printf("Downloading hblauncher_loader\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/yellows8/hblauncher_loader/releases/latest", ".zip"));//hblauncher_loader by yellows8
-	result("Download", ret, 9, 8);
+	result("Download", ret, 9, 9);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "hblauncher_loader.cia", "hblauncher_loader.cia", "/");
 	httpFree();
 	u32 size;
 	u8 *data = fsOpenAndRead("/hblauncher_loader.cia", &size);
 	printf("Trying to install hblauncher_loader.cia\n");
 	ciaInstall(data, size);
-	free(data);
-	data = fsOpenAndRead("/boot.firm", &size);
-	Result ret = fsOpenAndWriteNAND("/boot.firm", data, size);
-	result("Luma_On_CTRNAND", ret, 9, 9);
 	free(data);
 }
 

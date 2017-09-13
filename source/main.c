@@ -168,6 +168,7 @@ void downloadExtractStep2()
 	mkdir("/gm9",0777);
 	mkdir("/gm9/scripts", 0777);
 	archiveExtractFile(httpRetrieveData(), httpBufSize(), "__ALL__", "__NOTUSED__", "/gm9/scripts/");
+	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads/"); 
 	printf("Downloading godmode9 sd card cleaup script\n");
 	ret = httpDownloadData("http://3ds.guide/gm9_scripts/cleanup_sd_card.gm9"); //By d0k3
 	result("Download", ret, 9, 7);

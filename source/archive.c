@@ -66,17 +66,18 @@ void archiveExtractFile(void *buf, size_t size, char *fileToExtract, char *Extra
 				archive_write_finish_entry(ext);
 				break;
 			}
+		
+
+			else if (strcmp(fileToExtract, "__ALL__") == 0)
+			{
+				r = archive_write_header(ext,entry);
+				if(archive_entry_size(entry) > 0)
+						copy_data(a, ext);
+				archive_write_finish_entry(ext);
+			}
+
 		}
-
-		else if (strcmp(fileToExtract, "__ALL__") == 0)
-		{
-			r = archive_write_header(ext,entry);
-			if(archive_entry_size(entry) > 0)
-					copy_data(a, ext);
-			archive_write_finish_entry(ext);
-		}
-
-
+	
 	}
 	archive_read_close(a);
 	archive_read_free(a);

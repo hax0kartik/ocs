@@ -26,6 +26,7 @@ else	\
 	print("\x1b[1;31mFail: %08lX\x1b[1;37m\n", ret);	\
 }	
 
+#define a9lh ((*(vu32*) 0x101401C0) == 0)
 /*
 Code Plan:-
 
@@ -164,12 +165,12 @@ void downloadExtractStep2()
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/d0k3/GodMode9/releases/latest", ".zip"));// By d0k3
 	result("Download", ret, 9, 6);
 	mkdir("/luma/payloads", 0777);
-	archiveExtractFile(httpRetrieveData(), httpBufSize(), "GodMode9.firm", "GodMode9.firm", "/luma/payloads/");
+	mkdir("/gm9",0777);
+	mkdir("/gm9/scripts", 0777);
+	archiveExtractFile(httpRetrieveData(), httpBufSize(), "__ALL__", "__NOTUSED__", "/gm9/scripts/");
 	printf("Downloading godmode9 sd card cleaup script\n");
 	ret = httpDownloadData("http://3ds.guide/gm9_scripts/cleanup_sd_card.gm9"); //By d0k3
 	result("Download", ret, 9, 7);
-	mkdir("/gm9",0777);
-	mkdir("/gm9/scripts", 0777);
 	fsOpenAndWrite("/gm9/scripts/cleanup_sd_card.gm9", httpRetrieveData(), httpBufSize());
 	printf("Downloading godmode9 ctr-nand luma script\n");
 	ret = httpDownloadData("http://3ds.guide/gm9_scripts/setup_ctrnand_luma3ds.gm9"); //By d0k3
@@ -235,6 +236,7 @@ int main()
 		downloadExtractStep2();
 		printf("Proccess Finished. Press Start to exit and enjoy\n");
 	}
+	end:
 		while(aptMainLoop())
 		{
 			hidScanInput();

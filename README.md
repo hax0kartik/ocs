@@ -1,4 +1,4 @@
-# OCS(One Click Setup)[Github latest downloads](https://img.shields.io/github/downloads/pirater12/mk7se/total.svg)
+# OCS(One Click Setup)![Github latest downloads](https://img.shields.io/github/downloads/pirater12/ocs/total.svg)
 
 This is meant for 3ds users between firmware 9.0.0 to 11.3.0. It allows the users to go straight from stock to luma3ds with only 3 files on
 the sd card(If the user is using soundhax).

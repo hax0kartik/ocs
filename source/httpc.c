@@ -2,27 +2,42 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "httpc.h"
+#include "util.h"
 u8 *buf;
 u8 *lastbuf = NULL;
 u32 size=0, readsize=0;
 
-extern PrintConsole bottom, top;
-
-void progressbar(const char *string, double update, double total, bool progBarTotal)
+Result httpcDownloadDataTimeout(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize, u64 timeoutsecs)
 {
-	int nfill = 35;
-	int totalfill = (int)((update/total)*(double)nfill);
-	consoleSelect(&bottom);
-	if(progBarTotal == false)
-		printf("\x1b[14;0H%s%3.2f%% Complete   \x1b[15;0H[", string,((update/total)*100.0));
-	else
-		printf("\x1b[17;0H%s%3.2f%% Complete   \x1b[18;0H[", string,((update/total)*100.0));
-	for(int a = 0; a < totalfill; a++)
-		printf("=");
+	Result ret=0;
+	Result dlret=HTTPC_RESULTCODE_DOWNLOADPENDING;
+	u32 pos=0, sz=0;
+	u32 dlstartpos=0;
+	u32 dlpos=0;
 
-	printf(">");
-	printf("%*s%s", nfill - totalfill, "", "]");
-	consoleSelect(&top);
+	if(downloadedsize)*downloadedsize = 0;
+
+	ret=httpcGetDownloadSizeState(context, &dlstartpos, NULL);
+	if(R_FAILED(ret))return ret;
+
+	while(pos < size && dlret==HTTPC_RESULTCODE_DOWNLOADPENDING)
+	{
+		sz = size - pos;
+
+		dlret=httpcReceiveDataTimeout(context, &buffer[pos], sz, timeoutsecs);
+		if(dlret == HTTPC_RESULTCODE_TIMEDOUT)
+		{
+			return dlret;
+		}
+		ret=httpcGetDownloadSizeState(context, &dlpos, NULL);
+		if(R_FAILED(ret))return ret;
+
+		pos = dlpos - dlstartpos;
+	}
+
+	if(downloadedsize)*downloadedsize = pos;
+
+	return dlret;
 }
 
 Result httpDownloadData(const char* url)
@@ -57,9 +72,8 @@ Result httpDownloadData(const char* url)
 	}
 	ret = httpcGetDownloadSizeState(&context, NULL, &contentsize);
 	if(ret>0)return ret;
-
 	do {
-        ret = httpcDownloadData(&context, buf+size, 0x1000, &readsize);
+        ret = httpcDownloadDataTimeout(&context, buf+size, 0x1000, &readsize, 2.3e+11);
         size += readsize;
 		progressbar("Download:", size, contentsize, false);
         if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING){
@@ -74,8 +88,8 @@ Result httpDownloadData(const char* url)
     } while (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING);
 
 	if(ret!=0){
+		//if(buf != NULL) free(buf);
         httpcCloseContext(&context);
-        free(buf);
         return -1;
     }
 

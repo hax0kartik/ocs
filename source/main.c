@@ -12,9 +12,6 @@
 #include "fs.h"
 #include "jsmn.h"
 
-extern void progressbar(const char *string, double update, double total, bool progBarTotal);
-
-
 PrintConsole top, bottom;
 
 #define result(str,ret,steps,step_count) print("Result for %s:",str); \
@@ -31,48 +28,6 @@ else	\
 	print("Fail: %08lX\n", ret); \
 	printf("\x1b[1;37m"); \
 }	
-
-//Code from jsmn example
-int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
-	if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
-		strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
-		return 0;
-	}
-	return -1;
-}
-
-char *parseApi(const char *url, const char *format)
-{
-	printf("Parsing JSON to get latest release\n");
-	Result ret = httpDownloadData(url);
-	jsmn_parser p = {};
-	jsmn_init(&p);
-	static char downloadUrl[0x100], returnDownloadUrl[0x100];
-	jsmntok_t t[512] = {};
-	u8* apiReqData = httpRetrieveData();
-	int r = jsmn_parse(&p, (const char *)apiReqData, httpBufSize(), t, sizeof(t) / sizeof(t[0]));
-	if (r < 0) {
-		printf("Failed to parse JSON %d", r);
-	}
-	bool inassets = false;
-	for (int i = 0; i < r; i++) {
-		if (!inassets && jsoneq((const char*)apiReqData, &t[i], "assets") == 0) {
-			inassets = true;
-		}
-		if (inassets) {
-			if (jsoneq((const char*)apiReqData, &t[i], "browser_download_url") == 0) {
-				sprintf(downloadUrl, "%.*s", t[i+1].end-t[i+1].start, apiReqData + t[i+1].start);
-				if(strstr(downloadUrl, format) != NULL)
-				{
-					strcpy(returnDownloadUrl, downloadUrl);
-					printf("Downloading the latest release\n");
-				}		
-			}
-		}
-	}
-	httpFree();
-	return returnDownloadUrl;
-}
 
 void downloadExtractStep1()
 {
@@ -169,6 +124,7 @@ void downloadExtractStep2()
 	ret = httpDownloadData("http://3ds.guide/gm9_scripts/setup_ctrnand_luma3ds.gm9"); //By d0k3
 	result("Download", ret, 9, 8);
 	fsOpenAndWrite("/gm9/scripts/setup_ctrnand_luma3ds.gm9", httpRetrieveData(), httpBufSize());
+	httpFree();
 	//Best time to install hblauncher_loader
 	print("Downloading hblauncher_loader\n");
 	ret = httpDownloadData(parseApi("https://api.github.com/repos/yellows8/hblauncher_loader/releases/latest", ".zip"));//hblauncher_loader by yellows8
@@ -187,6 +143,7 @@ int main()
 	//preliminary stuff
 	gfxInitDefault();
 	logInit();
+	httpcInit(0);
 	consoleInit(GFX_TOP, &top);
 	consoleInit(GFX_BOTTOM, &bottom);
 	consoleSelect(&bottom);
@@ -195,51 +152,67 @@ int main()
 	consoleSelect(&top);
 	printf("\x1b[1;37m");
 	bool cfwflag = false;
-	acWaitInternetConnection();
-	printf("Press A to begin\n");
-	while(aptMainLoop())
-		{
-			hidScanInput();
-
-			if(hidKeysDown() & KEY_A)
-				break;
-
-		}
-	printf("Checking if cfw is installed\n");
-	Result ret = checkRunningCFW();
-	(ret == 0xF8C007F4) ? (cfwflag = false) : (cfwflag = true);
-	consoleSelect(&top);
-	httpcInit(0);
-	if(cfwflag == false)
+	u32 status;
+	ACU_GetWifiStatus(&status);
+	if(status == 0)
 	{
-		printf("Not running cfw\n");
-		if(checkFileExists("/safehaxpayload.bin") == 0) //check if files already exsist for step 1.
-		{	
-			print("Downloading files for CFW installation\n");
-			downloadExtractStep1();
-		}	
-		printf("Running exploits\n");
-		doExploitsStep1();
+		printf("You're not connected to the internet, please connect to a internet and open this app again. Press START to exit.");
 	}
 	else
-	{
-		//User is running luma cfw
-		printf("Running cfw\n");
-		print("Downloading files for Step 2...\n");
-		//parseApi("https://api.github.com/repos/pirater12/ocs/releases/latest");
-		downloadExtractStep2();
-		printf("Proccess Finished. Press Start to exit and enjoy\n");
-	}
-	end:
+	{	
+		printf("Press A to begin\n");
 		while(aptMainLoop())
 		{
 			hidScanInput();
-
-			if(hidKeysDown() & KEY_START)
-				break;
-
+			if(hidKeysDown() & KEY_A)
+			break;
 		}
+	
+		printf("Checking if cfw is installed\n");
+		lumainfo version;
+		Result ret = checkLumaVersion(&version);
+		printf("Ret %08lX", ret);
+		(ret == 0xF8C007F4) ? (cfwflag = false) : (cfwflag = true);
+		if(cfwflag == false)
+		{
+			printf("Not running cfw\n");
+			if(checkFileExists("/safehaxpayload.bin") == 0) //check if files already exsist for step 1.
+			{	
+				print("Downloading files for CFW installation\n");
+				downloadExtractStep1();
+			}	
+			printf("Running exploits\n");
+			doExploitsStep1();
+		}
+		else
+		{
+			//User is running luma cfw
+			printf("Running cfw\n");
+			if(ret == 0)
+			{
+				double ver = version.versionMajor + (double)(version.versionMinor/10);
+				if(ver < 7.1)
+				{
+					printf("A9LH has been detected. Press start to exit.");
+				}
+			}
+			print("Downloading files for Step 2...\n");
+			//parseApi("https://api.github.com/repos/pirater12/ocs/releases/latest");
+			downloadExtractStep2();
+			printf("Proccess Finished. Press Start to exit and enjoy\n");
+		}
+	}
+	
+	while(aptMainLoop())
+	{
+		hidScanInput();
+
+		if(hidKeysDown() & KEY_START)
+			break;
+
+	}
 	httpcExit();
 	logExit();
 	gfxExit();
+	return 0;
 }

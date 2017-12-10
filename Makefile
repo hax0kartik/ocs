@@ -7,6 +7,7 @@ $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>dev
 endif
 
 TOPDIR ?= $(CURDIR)
+DEPENDENCY_LIBS ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
 #---------------------------------------------------------------------------------
@@ -31,7 +32,7 @@ TARGET		:=	boot
 BUILD		:=	build
 SOURCES		:=	source source/exploits/source
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	include include/liblzma include/libarchive
 APP_AUTHOR	:= 	Kartik
 APP_TITLE	:= 	OCS
 APP_DESCRIPTION	:= 	One Click Setup For 3ds!
@@ -59,7 +60,7 @@ LIBS	:= -larchive -llzma -lz -lctru -lm
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(CTRULIB)
+LIBDIRS	:= $(CTRULIB) $(DEPENDENCY_LIBS)
 
 
 #---------------------------------------------------------------------------------

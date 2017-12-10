@@ -1,4 +1,4 @@
-# OCS(One Click Setup)![Github latest downloads](https://img.shields.io/github/downloads/pirater12/ocs/total.svg)
+# OCS(One Click Setup)![Github latest downloads](https://img.shields.io/github/downloads/pirater12/ocs/total.svg) [![Build Status](https://travis-ci.org/Pirater12/ocs.svg?branch=master)](https://travis-ci.org/Pirater12/ocs)
 
 This is meant for 3ds users between firmware 9.0.0 to 11.3.0. It allows the users to go straight from stock to luma3ds with only 3 files on
 the sd card(If the user is using soundhax).
@@ -21,7 +21,6 @@ to boot.3dsx and put it in the root of your sd card.
 # Building
 
 To build, you first need to compile the payload folder and then the main makefile(ctrulib and devkitpro must be installed).
-You also need to install liblzma and libarchive from the 3ds_portlibs.
 
 # Credits
 
